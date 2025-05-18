@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\Result;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Mail, DB, Hash, Validator, Session, File,Exception;
@@ -269,8 +270,39 @@ class AdminAuthController extends Controller
 
     public function adminDashboard()
     {
-        return view("admin.dashboard.index");
+        $result = "";
+        return view("admin.dashboard.index", compact('result'));
     }
 
+    public function GetResult(Request $request)
+    {
 
+        // Fetch student result
+        $result = Result::where('class', $request->classSelect)
+                        ->where('section', $request->section)
+                        ->where('roll_number', $request->rollnumber)
+                        ->first();
+
+        if (!$result) {
+            return back()->with('error', 'Result not found.');
+        }
+
+        // Check if any marks are filled
+        $hasMarks = collect($result->toArray())
+            ->filter(function ($value, $key) {
+                $keywords = ['written', 'oral', 'half_yearly', 'yearly'];
+                foreach ($keywords as $keyword) {
+                    if (Str::contains($key, $keyword) && $value !== null && $value !== '' && $value != 0) {
+                        return true;
+                    }
+                }
+                return false;
+            })
+            ->isNotEmpty();
+        if ($hasMarks) {
+            return view('marksheet', ['result' => $result]);
+        } else {
+            return back()->with('error', 'No marks available to generate marksheet.');
+        }
+    }
 }

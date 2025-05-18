@@ -46,6 +46,8 @@ Route::name('admin.')->prefix('admin')->group(function () {
         Route::get('profile', [AdminAuthController::class, 'adminProfile'])->name('profile');
 
         Route::post('profile', [AdminAuthController::class, 'updateAdminProfile'])->name('update.profile');
+
+        Route::post('get-reult', [AdminAuthController::class, 'GetResult'])->name('get.result');
     });
 
 });
